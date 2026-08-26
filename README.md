@@ -47,3 +47,14 @@ The dashboard will then be publicly accessible to anyone with the deployment lin
 ## Deployment Notes
 
 This project is designed to run in a local deployment or hosted Streamlit environment. The app uses file-based data, rule checks, and structured JSON outputs so it remains deterministic and auditable.
+
+## Enable AI Diagnosis
+
+The app uses the deterministic checker when no key is configured. To send cases to the AI model, add these variables in Streamlit Cloud under **Settings > Secrets**:
+
+```toml
+NETSAGE_AI_API_KEY = "your-api-key"
+NETSAGE_AI_MODEL = "gpt-4o-mini"
+```
+
+Never commit an API key to GitHub. With the key configured, the dashboard sends the case symptom, topology note, and CLI output to the model using `prompts/diagnose_prompt.md`, requests strict JSON, validates the response, and falls back to the rule engine if the model is unavailable or returns invalid data.
