@@ -13,6 +13,7 @@ The system helps network engineers and students identify root causes from CLI ou
 - Human oversight dashboard: `src/app.py`
 - Prompt templates: `prompts/diagnose_prompt.md`
 - Documentation and audit notes: `docs/model_audit_log.md`
+<<<<<<< HEAD
 
 ## Quick Start
 
@@ -58,3 +59,5 @@ NETSAGE_AI_MODEL = "gpt-4o-mini"
 ```
 
 Never commit an API key to GitHub. With the key configured, the dashboard sends the case symptom, topology note, and CLI output to the model using `prompts/diagnose_prompt.md`, requests strict JSON, validates the response, and falls back to the rule engine if the model is unavailable or returns invalid data.
+=======
+>>>>>>> a7b064b08fc0eb6a912d598bc7823bac0b504c21
