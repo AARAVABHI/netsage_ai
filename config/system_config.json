@@ -1,0 +1,14 @@
+{
+  "app_name": "NetSage AI",
+  "default_model": "gpt-4o-mini",
+  "thresholds": {
+    "high_confidence": 0.8,
+    "medium_confidence": 0.5,
+    "low_confidence": 0.2
+  },
+  "execution": {
+    "allow_manual_override": true,
+    "human_review_required": true,
+    "log_audit_events": true
+  }
+}

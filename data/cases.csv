@@ -1,0 +1,12 @@
+case_id,symptom,topology_note,concept_tag,severity,show_outputs,expected_fault
+NET-001,PC1 cannot reach Server1 in VLAN 30,Inter-VLAN routing issue,Layer 3,high,"GigabitEthernet0/0.10 is up, line protocol is up
+GigabitEthernet0/0.30 is administratively down, line protocol is down","Sub-interface shutdown"
+NET-002,PC2 cannot connect to default gateway,Routing and VLAN mismatch,Layer 3,high,"Vlan30 is down
+show ip route shows no route to 10.0.30.0/24","Missing VLAN interface or route"
+NET-003,Host cannot ping across VLANs,Access switch trunk misconfiguration,Layer 2,high,"switchport mode access
+switchport access vlan 20
+encapsulation dot1q","Wrong VLAN/trunk configuration"
+NET-004,ACL blocks SSH from subnet,Security policy issue,Layer 4,medium,"access-list 101 deny tcp any any eq 22
+access-list 101 permit ip any any","ACL incorrectly denies SSH"
+NET-005,APIPA address issue,Static IP config mismatch,Layer 3,medium,"169.254.x.x assigned
+show ip interface brief shows no DHCP lease","DHCP failure or incorrect IP config"
