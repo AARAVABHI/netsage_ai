@@ -1,63 +1,107 @@
 # NetSage AI
 
-NetSage AI is a hybrid diagnostic platform for Cisco Packet Tracer and network troubleshooting labs. It combines deterministic rule checks with structured LLM prompts and a human-in-the-loop approval gate.
+NetSage AI is an AI-assisted network diagnostic platform for Cisco Packet Tracer labs and educational networking environments. It analyzes network symptoms and Cisco CLI output, identifies likely configuration faults, and recommends safe remediation steps for review by a network engineer or student.
 
-## Project Goal
+## What the System Does
 
-The system helps network engineers and students identify root causes from CLI output, explain the likely OSI layer involved, and validate remediation before deployment.
+NetSage AI supports the network troubleshooting workflow from diagnosis to human approval:
 
-## Architecture
+1. Loads a structured troubleshooting case from the project dataset.
+2. Displays the symptom, topology context, severity, and captured Cisco command output.
+3. Checks the output against deterministic diagnostic rules for known network issues.
+4. Optionally sends the case to an AI model for additional analysis.
+5. Produces a structured diagnosis containing the root cause, OSI layer, confidence score, evidence, next command, and recommended fix steps.
+6. Presents the recommendation through a Streamlit dashboard.
+7. Requires the operator to approve, edit, or reject the proposed remediation.
 
-- Data layer: `data/cases.csv`
-- Diagnostic engine: `src/checker.py`, `src/engine.py`
-- Human oversight dashboard: `src/app.py`
-- Prompt templates: `prompts/diagnose_prompt.md`
-- Documentation and audit notes: `docs/model_audit_log.md`
-<<<<<<< HEAD
+The platform does not automatically execute network commands. Human review remains mandatory before any remediation is considered for deployment.
 
-## Quick Start
+## Key Capabilities
 
-1. Create a virtual environment.
-2. Install dependencies:
-   `pip install -r requirements.txt`
-3. Run the dashboard locally:
-   `streamlit run app.py`
-4. Run tests:
-   `pytest -q`
+- Detects common interface, VLAN, trunk, routing, ACL, and DHCP issues.
+- Uses deterministic rules for transparent and repeatable checks.
+- Supports AI-based diagnosis through an OpenAI-compatible API provider.
+- Uses `Qwen/Qwen2.5-7B-Instruct` when configured for Hugging Face.
+- Validates AI responses before displaying them.
+- Falls back to the local rule engine when the AI service is unavailable.
+- Provides a human-in-the-loop approval workflow.
+- Supports audit documentation for approvals, overrides, and false positives.
 
-## Streamlit Deployment
+## Project Structure
 
-This app is ready for Streamlit Cloud and other public hosting environments.
+```text
+.
+|-- app.py                         Streamlit deployment entrypoint
+|-- config/system_config.json      Application configuration
+|-- data/cases.csv                 Network troubleshooting cases
+|-- docs/model_audit_log.md        Audit and review documentation
+|-- prompts/diagnose_prompt.md     AI diagnosis instructions and output schema
+|-- src/app.py                     Streamlit dashboard implementation
+|-- src/checker.py                 Deterministic diagnostic rules
+|-- src/engine.py                  Case loading and AI orchestration
+|-- tests/test_net_sage.py         Automated tests
+|-- requirements.txt               Python dependencies
+`-- PROJECT_SUMMARY.md              Overall project summary
+```
 
-### Required for deployment
+## Local Setup
 
-- Keep the app entrypoint as `app.py` at the repository root.
-- Ensure all dependencies are listed in `requirements.txt`.
-- Use the included `.streamlit/config.toml` for deployment-friendly server settings.
+From the project directory, install the dependencies:
 
-### Deploy to Streamlit Community Cloud
+```bash
+pip install -r requirements.txt
+```
 
-1. Push this project to a GitHub repository.
-2. Open Streamlit Cloud.
-3. Select the repo and branch.
-4. Set the main file to `app.py`.
-5. Deploy.
+Start the dashboard:
 
-The dashboard will then be publicly accessible to anyone with the deployment link.
+```bash
+streamlit run app.py
+```
 
-## Deployment Notes
+Run the tests:
 
-This project is designed to run in a local deployment or hosted Streamlit environment. The app uses file-based data, rule checks, and structured JSON outputs so it remains deterministic and auditable.
+```bash
+pytest -q
+```
 
 ## Enable AI Diagnosis
 
-The app uses the deterministic checker when no key is configured. To send cases to the AI model, add these variables in Streamlit Cloud under **Settings > Secrets**:
+Without an API token, the application uses the deterministic rule engine. To enable AI diagnosis locally, configure the following environment variables:
 
-```toml
-NETSAGE_AI_API_KEY = "your-api-key"
-NETSAGE_AI_MODEL = "gpt-4o-mini"
+```dotenv
+HUGGINGFACEHUB_API_TOKEN=your-real-token
+NETSAGE_AI_MODEL=Qwen/Qwen2.5-7B-Instruct
+NETSAGE_AI_BASE_URL=https://router.huggingface.co/v1
 ```
 
-Never commit an API key to GitHub. With the key configured, the dashboard sends the case symptom, topology note, and CLI output to the model using `prompts/diagnose_prompt.md`, requests strict JSON, validates the response, and falls back to the rule engine if the model is unavailable or returns invalid data.
-=======
->>>>>>> a7b064b08fc0eb6a912d598bc7823bac0b504c21
+The application also accepts `NETSAGE_AI_API_KEY` for compatibility with other OpenAI-compatible providers.
+
+Never commit real API tokens to source control. The token should be stored securely in the deployment platform's secret manager.
+
+## Streamlit Cloud Deployment
+
+1. Push the project to a GitHub repository.
+2. Open Streamlit Community Cloud and create a new application.
+3. Select the repository and branch.
+4. Set the main file to `app.py`.
+5. Add the following values under the application's secrets settings:
+
+```toml
+HUGGINGFACEHUB_API_TOKEN = "your-real-token"
+NETSAGE_AI_MODEL = "Qwen/Qwen2.5-7B-Instruct"
+NETSAGE_AI_BASE_URL = "https://router.huggingface.co/v1"
+```
+
+6. Deploy the application.
+
+After deployment, Streamlit will provide a public URL that can be shared with users.
+
+## Safety and Reliability
+
+NetSage AI is designed as a decision-support tool. Its recommendations should be reviewed against the actual network topology and device configuration before use. The deterministic checker, structured output validation, and human approval gate help reduce the risk of applying incorrect or destructive commands.
+
+## Documentation
+
+- [PROJECT_SUMMARY.md](PROJECT_SUMMARY.md) - overall project summary
+- [docs/model_audit_log.md](docs/model_audit_log.md) - audit guidance
+- [prompts/diagnose_prompt.md](prompts/diagnose_prompt.md) - AI prompt contract

@@ -12,6 +12,18 @@ DATA_PATH = ROOT / 'data' / 'cases.csv'
 PROMPT_PATH = ROOT / 'prompts' / 'diagnose_prompt.md'
 
 
+def get_setting(name: str, default: str = '') -> str:
+    value = os.getenv(name)
+    if value:
+        return value
+
+    try:
+        import streamlit as st
+        return str(st.secrets.get(name, default))
+    except Exception:
+        return default
+
+
 def load_cases() -> pd.DataFrame:
     return pd.read_csv(DATA_PATH)
 
@@ -56,20 +68,24 @@ def _validate_model_result(result: Dict, case: Dict) -> Dict:
 
 
 def run_ai_diagnosis(case: Dict) -> Dict:
-    api_key = os.getenv('NETSAGE_AI_API_KEY')
+    api_key = get_setting('NETSAGE_AI_API_KEY') or get_setting('HUGGINGFACEHUB_API_TOKEN')
     if not api_key:
-        raise RuntimeError('NETSAGE_AI_API_KEY is not configured')
+        raise RuntimeError('Configure NETSAGE_AI_API_KEY or HUGGINGFACEHUB_API_TOKEN')
 
     try:
         from openai import OpenAI
     except ImportError as error:
         raise RuntimeError('Install the openai package to use AI diagnosis') from error
 
-    client = OpenAI(api_key=api_key)
+    client_options = {'api_key': api_key}
+    base_url = get_setting('NETSAGE_AI_BASE_URL', 'https://router.huggingface.co/v1')
+    if base_url:
+        client_options['base_url'] = base_url
+
+    client = OpenAI(**client_options)
     response = client.chat.completions.create(
-        model=os.getenv('NETSAGE_AI_MODEL', 'gpt-4o-mini'),
+        model=get_setting('NETSAGE_AI_MODEL', 'Qwen/Qwen2.5-7B-Instruct'),
         temperature=0,
-        response_format={'type': 'json_object'},
         messages=[
             {
                 'role': 'system',
@@ -85,7 +101,8 @@ def run_ai_diagnosis(case: Dict) -> Dict:
 
 
 def run_diagnosis(case: Dict, use_ai: bool = True) -> Dict:
-    if use_ai and os.getenv('NETSAGE_AI_API_KEY'):
+    has_api_key = get_setting('NETSAGE_AI_API_KEY') or get_setting('HUGGINGFACEHUB_API_TOKEN')
+    if use_ai and has_api_key:
         try:
             return run_ai_diagnosis(case)
         except (ValueError, RuntimeError, json.JSONDecodeError) as error:
